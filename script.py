@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 import seaborn as sns
 import matplotlib.pyplot as plt
+
  
 URL = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
 COLUMN_NAMES = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin',
@@ -70,9 +71,6 @@ plt.xlabel('Pishbini Shodeh')
 plt.ylabel('Vaghei')
 plt.title('Confusion Matrix (KNN-Out حذف Outlier)')
 plt.show() 
-
-
-from sklearn.tree import plot_tree
 
 plt.figure(figsize=(20, 10))
 plot_tree(best_model, 

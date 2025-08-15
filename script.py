@@ -1,311 +1,117 @@
-# import pandas as pd
-# import numpy as np
-# from sklearn.model_selection import train_test_split, GridSearchCV
-# from sklearn.tree import DecisionTreeClassifier , plot_tree
-# from sklearn.metrics import accuracy_score, confusion_matrix
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.neighbors import NearestNeighbors
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+# =================================================================
+#   FINAL SCRIPT 6: REGULARIZED RANDOM FOREST TO REDUCE OVERFITTING
+# =================================================================
 
- 
-# URL = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
-# COLUMN_NAMES = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin',
-#                 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
-# data = pd.read_csv(URL, header=None, names=COLUMN_NAMES)
- 
-# columns_to_impute = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
-# data[columns_to_impute] = data[columns_to_impute].replace(0, np.nan)
-# for col in columns_to_impute:
-#     data[col].fillna(data.groupby('Outcome')[col].transform('mean'), inplace=True)
-
- 
-# X_full = data.drop('Outcome', axis=1)
-# y_full = data['Outcome']
-
-# scaler = StandardScaler()
-# X_scaled = scaler.fit_transform(X_full)
- 
-
-# k = 10 # تعداد همسایگان
-# knn = NearestNeighbors(n_neighbors=k)
-# knn.fit(X_scaled)
-# distances, _ = knn.kneighbors(X_scaled)
- 
-# outlier_scores = distances.mean(axis=1)
- 
-# threshold = np.percentile(outlier_scores, 95)
-# mask = outlier_scores < threshold
-
- 
-# X_clean = X_full[mask]
-# y_clean = y_full[mask]
- 
-# X_train, X_test, y_train, y_test = train_test_split(X_clean, y_clean, test_size=0.325, random_state=42, stratify=y_clean)
- 
-# model = DecisionTreeClassifier(random_state=42)
-# param_grid = {
-#     'criterion': ['gini', 'entropy'],
-#     'max_depth': [3, 4, 5, 6, 7, 8], # max depth is used for preventing the dicision tree from overfitting 
-#     'min_samples_split': [9,10,11,12,13,14,15],
-#     'min_samples_leaf': [6,7,8]
-# }
-
-# grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, scoring='accuracy', n_jobs=-1)
-# grid_search.fit(X_train, y_train)
-
- 
-# best_model = grid_search.best_estimator_
-# y_pred = best_model.predict(X_test)
-# final_accuracy = accuracy_score(y_test, y_pred)
-
-# print(f"best parameters: {grid_search.best_params_}")
-# print(f"Accuracy: {final_accuracy * 100:.2f}%")
-
-# cm = confusion_matrix(y_test, y_pred)
-# plt.figure(figsize=(6, 5))
-# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-#             xticklabels=['Salamat (0)', 'Diabeti (1)'],
-#             yticklabels=['Salamat (0)', 'Diabeti (1)'])
-# plt.xlabel('Pishbini Shodeh')
-# plt.ylabel('Vaghei')
-# plt.title('Confusion Matrix (KNN-Out حذف Outlier)')
-# plt.show() 
-
-# plt.figure(figsize=(20, 10))
-# plot_tree(best_model, 
-#           feature_names=X_full.columns,
-#           class_names=['Salamat (0)', 'Diabeti (1)'],
-#           filled=True, 
-#           rounded=True, 
-#           fontsize=10)
-# plt.title("Visualization of the Best Decision Tree")
-# plt.show()
-
-#####################################################################################################
-# import pandas as pd
-# import numpy as np
-# from sklearn.model_selection import train_test_split, GridSearchCV
-# from sklearn.tree import DecisionTreeClassifier, plot_tree
-# from sklearn.metrics import accuracy_score, confusion_matrix
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.neighbors import NearestNeighbors
-# import seaborn as sns
-# import matplotlib.pyplot as plt
-
-# # --- خواندن داده‌ها ---
-# URL = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
-# COLUMN_NAMES = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin',
-#                 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
-# data = pd.read_csv(URL, header=None, names=COLUMN_NAMES)
-
-# # --- جدا کردن X و y ---
-# X_full = data.drop('Outcome', axis=1)
-# y_full = data['Outcome']
-
-# # --- تقسیم داده‌ها به train/test ---
-# X_train, X_test, y_train, y_test = train_test_split(
-#     X_full, y_full, test_size=0.325, random_state=42, stratify=y_full
-# )
-
-# # --- پیش‌پردازش: جایگزینی 0 با NaN و پر کردن با میانگین هر کلاس ---
-# columns_to_impute = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
-
-# # فقط روی train
-# X_train[columns_to_impute] = X_train[columns_to_impute].replace(0, np.nan)
-# for col in columns_to_impute:
-#     X_train[col].fillna(X_train.groupby(y_train)[col].transform('mean'), inplace=True)
-
-# # روی test هم همان مقادیر از train را استفاده می‌کنیم
-# for col in columns_to_impute:
-#     mean_values = X_train.groupby(y_train)[col].mean()
-#     X_test[col] = X_test[col].replace(0, np.nan)
-#     for cls in mean_values.index:
-#         X_test.loc[(y_test == cls) & (X_test[col].isna()), col] = mean_values[cls]
-
-# # --- حذف Outlier ها فقط با استفاده از train ---
-# scaler = StandardScaler()
-# X_train_scaled = scaler.fit_transform(X_train)
-# X_test_scaled = scaler.transform(X_test)
-
-# k = 10
-# knn = NearestNeighbors(n_neighbors=k)
-# knn.fit(X_train_scaled)
-# distances, _ = knn.kneighbors(X_train_scaled)
-
-# outlier_scores = distances.mean(axis=1)
-# threshold = np.percentile(outlier_scores, 95)
-# mask_train = outlier_scores < threshold
-
-# X_train_clean = X_train[mask_train]
-# y_train_clean = y_train[mask_train]
-
-# # --- آموزش مدل با GridSearchCV ---
-# model = DecisionTreeClassifier(random_state=42)
-# param_grid = {
-#     'criterion': ['gini'],
-#     'max_depth': [3, 4, 5, 6, 7, 8],
-#     'min_samples_split': [9, 10, 11, 12, 13, 14, 15],
-#     'min_samples_leaf': [6, 7, 8]
-# }
-
-# grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5,
-#                            scoring='accuracy', n_jobs=-1)
-# grid_search.fit(X_train_clean, y_train_clean)
-
-# # --- ارزیابی ---
-# best_model = grid_search.best_estimator_
-# y_pred = best_model.predict(X_test)
-
-# final_accuracy = accuracy_score(y_test, y_pred)
-# print(f"Best parameters: {grid_search.best_params_}")
-# print(f"Accuracy: {final_accuracy * 100:.2f}%")
-
-# # --- ماتریس درهم‌ریختگی ---
-# cm = confusion_matrix(y_test, y_pred)
-# plt.figure(figsize=(6, 5))
-# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-#             xticklabels=['Salamat (0)', 'Diabeti (1)'],
-#             yticklabels=['Salamat (0)', 'Diabeti (1)'])
-# plt.xlabel('Pishbini Shodeh')
-# plt.ylabel('Vaghei')
-# plt.title('Confusion Matrix (حذف Outlier با Train)')
-# plt.show()
-
-# # --- رسم درخت تصمیم ---
-# plt.figure(figsize=(20, 10))
-# plot_tree(best_model,
-#           feature_names=X_full.columns,
-#           class_names=['Salamat (0)', 'Diabeti (1)'],
-#           filled=True,
-#           rounded=True,
-#           fontsize=10)
-# plt.title("Visualization of the Best Decision Tree")
-# plt.show()
-##################################################################################################
+# Step 1-3: Import Libraries, Load Data, Feature Engineering (Same as before)
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import NearestNeighbors
-import seaborn as sns
-import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, f1_score, precision_recall_curve
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import RobustScaler
+from sklearn.impute import KNNImputer
+from sklearn.feature_selection import SelectFromModel # ✅ Import feature selector
 
-# --- خواندن داده‌ها ---
-URL = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
-COLUMN_NAMES = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin',
-                'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome']
-data = pd.read_csv(URL, header=None, names=COLUMN_NAMES)
+print("--- Script for Regularized Random Forest Started ---")
 
-# --- جدا کردن X و y ---
-X_full = data.drop('Outcome', axis=1)
-y_full = data['Outcome']
+# ... (کد مربوط به بارگذاری داده و مهندسی ویژگی بدون تغییر در اینجا قرار می‌گیرد) ...
+# Step 2: Load and Prepare Data
+print("\n[Step 2] Loading and Preparing Data...")
+url = "https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
+column_names = ['pregnant', 'glucose', 'pressure', 'triceps', 'insulin', 'mass', 'pedigree', 'age', 'diabetes']
+df = pd.read_csv(url, header=None, names=column_names)
+df.loc[:, ['glucose', 'pressure', 'triceps', 'insulin', 'mass']] = df.loc[:, ['glucose', 'pressure', 'triceps', 'insulin', 'mass']].replace(0, np.nan)
+print("Data loaded and initial cleaning done.")
 
-# --- تقسیم داده‌ها به train/test ---
-X_train, X_test, y_train, y_test = train_test_split(
-    X_full, y_full, test_size=0.325, random_state=42, stratify=y_full
-)
+# Step 3: Feature Engineering
+print("\n[Step 3] Performing Feature Engineering...")
+df['Glucose_Insulin_Ratio'] = df['glucose'] / df['insulin']
+df['BMI_Age'] = df['mass'] * df['age']
+df['Pregnancy_Age'] = df['pregnant'] * df['age']
 
-# --- پیش‌پردازش: جایگزینی 0 با NaN و پر کردن با میانگین هر کلاس ---
-columns_to_impute = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
+def categorize_bmi(bmi):
+    if pd.isnull(bmi): return np.nan
+    if bmi < 18.5: return 'Underweight'
+    if 18.5 <= bmi < 25: return 'Normal'
+    if 25 <= bmi < 30: return 'Overweight'
+    return 'Obese'
+df['BMI_Category'] = df['mass'].apply(categorize_bmi)
+df = pd.get_dummies(df, columns=['BMI_Category'], drop_first=True)
+print(f"New dataset shape: {df.shape}")
 
-X_train = X_train.copy()
-X_test = X_test.copy()
 
-X_train[columns_to_impute] = X_train[columns_to_impute].replace(0, np.nan)
-for col in columns_to_impute:
-    means = X_train.groupby(y_train)[col].transform('mean')
-    X_train[col] = X_train[col].fillna(means)
+# Step 4: Split Data
+print("\n[Step 4] Splitting data...")
+X = df.drop('diabetes', axis=1)
+y = df['diabetes']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-for col in columns_to_impute:
-    mean_values = X_train.groupby(y_train)[col].mean()
-    X_test[col] = X_test[col].replace(0, np.nan)
-    for cls in mean_values.index:
-        mask = (y_test == cls) & (X_test[col].isna())
-        X_test.loc[mask, col] = mean_values[cls]
 
-# --- حذف Outlier ها فقط با استفاده از train ---
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+# Step 5: Build an Advanced Pipeline with Feature Selection
+print("\n[Step 5] Building Pipeline with Feature Selection and Regularization...")
 
-k = 10
-knn = NearestNeighbors(n_neighbors=k)
-knn.fit(X_train_scaled)
-distances, _ = knn.kneighbors(X_train_scaled)
+# We add SelectFromModel to the pipeline
+pipeline = Pipeline([
+    ('imputer', KNNImputer(n_neighbors=5)),
+    ('scaler', RobustScaler()),
+    ('selector', SelectFromModel(RandomForestClassifier(n_estimators=100, random_state=42))),
+    ('rf', RandomForestClassifier(random_state=42, class_weight='balanced_subsample')) # 'balanced_subsample' is often better
+])
 
-outlier_scores = distances.mean(axis=1)
-threshold = np.percentile(outlier_scores, 95)
-mask_train = outlier_scores < threshold
-
-X_train_clean = X_train[mask_train]
-y_train_clean = y_train[mask_train]
-
-# --- آموزش مدل با GridSearchCV (class_weight='balanced') ---
-model = DecisionTreeClassifier(random_state=42, class_weight='balanced')
-param_grid = {
-    'criterion': ['gini', 'entropy'],
-    'max_depth': [3, 4, 5, 6, 7, 8],
-    'min_samples_split': [9, 10, 11, 12, 13, 14, 15],
-    'min_samples_leaf': [6, 7, 8]
+# ✅ New, more constrained parameter grid to encourage simpler models
+param_dist_rf_regularized = {
+    'rf__n_estimators': [100, 150, 200],
+    'rf__max_depth': [4, 5, 6, 7, 8 , 10],            
+    'rf__min_samples_leaf': [5, 10, 15, 20], #  elemenet 5          
+    'rf__min_samples_split': [10, 20, 30, 40],        
+    'rf__max_features': ['sqrt', 'log2', 0.5],      
+    'selector__threshold': ['median', '1.5*mean'] ######################################I deleted 'mean'
 }
 
-grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5,
-                           scoring='accuracy', n_jobs=-1)
-grid_search.fit(X_train_clean, y_train_clean)
+# Perform Randomized Search with the new parameters
+random_search_rf = RandomizedSearchCV(
+    estimator=pipeline,
+    param_distributions=param_dist_rf_regularized,
+    n_iter=100,
+    cv=8,
+    scoring='f1_weighted',
+    n_jobs=-1,
+    verbose=1,
+    random_state=42
+)
+random_search_rf.fit(X_train, y_train)
 
-# --- ارزیابی ---
-best_model = grid_search.best_estimator_
-y_pred = best_model.predict(X_test)
+best_model = random_search_rf.best_estimator_
+print("\nBest regularized parameters found for RandomForest Pipeline:")
+print(random_search_rf.best_params_)
 
-train_accuracy = best_model.score(X_train, y_train)
-final_accuracy = accuracy_score(y_test, y_pred)
+# Step 6 & 7: Threshold Tuning and Final Evaluation (Same as before)
+print("\n[Step 6] Finding the optimal threshold...")
 
-print(f"Best parameters: {grid_search.best_params_}")
-print(f"Training Accuracy: {train_accuracy * 100:.2f}%")
-print(f"Test Accuracy: {final_accuracy * 100:.2f}%\n")
+y_proba_test = best_model.predict_proba(X_test)[:, 1]
+precisions, recalls, thresholds = precision_recall_curve(y_test, y_proba_test)
 
-# --- گزارش کامل ---
-print("Classification Report:\n", classification_report(y_test, y_pred, target_names=['Salamat (0)', 'Diabeti (1)']))
+f1_scores = (2 * precisions * recalls) / (precisions + recalls)
+f1_scores = f1_scores[:-1]
+thresholds = thresholds[:len(f1_scores)]
 
-# --- اهمیت ویژگی‌ها ---
-importances = best_model.feature_importances_
-features = X_full.columns
+optimal_idx = np.argmax(f1_scores)
+optimal_threshold = thresholds[optimal_idx]
+print(f"Optimal threshold found: {optimal_threshold:.4f} (Maximizes F1-Score)")
 
-feature_importance_df = pd.DataFrame({
-    'Feature': features,
-    'Importance': importances
-}).sort_values(by='Importance', ascending=False)
+y_pred_optimal = (y_proba_test >= optimal_threshold).astype(int)
 
-print("\nFeature Importance:")
-print(feature_importance_df)
+print("\n--- Performance with Optimal Threshold on Test Set ---")
+print(classification_report(y_test, y_pred_optimal))
 
-plt.figure(figsize=(8, 5))
-sns.barplot(x='Importance', y='Feature', data=feature_importance_df, palette='viridis')
-plt.title('Feature Importance in Decision Tree')
-plt.show()
+# Overfitting Analysis
+y_proba_train = best_model.predict_proba(X_train)[:, 1]
+y_pred_train_optimal = (y_proba_train >= optimal_threshold).astype(int)
+f1_test = f1_score(y_test, y_pred_optimal, average='weighted')
+f1_train = f1_score(y_train, y_pred_train_optimal, average='weighted')
 
-# --- ماتریس درهم‌ریختگی ---
-cm = confusion_matrix(y_test, y_pred)
-plt.figure(figsize=(6, 5))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Salamat (0)', 'Diabeti (1)'],
-            yticklabels=['Salamat (0)', 'Diabeti (1)'])
-plt.xlabel('Pishbini Shodeh')
-plt.ylabel('Vaghei')
-plt.title('Confusion Matrix (حذف Outlier + class_weight balanced)')
-plt.show()
-
-# --- رسم درخت تصمیم ---
-plt.figure(figsize=(20, 10))
-plot_tree(best_model,
-          feature_names=X_full.columns,
-          class_names=['Salamat (0)', 'Diabeti (1)'],
-          filled=True,
-          rounded=True,
-          fontsize=10)
-plt.title("Visualization of the Best Decision Tree")
-plt.show()
-
+print("\n--- Final Overfitting Analysis (Regularized Random Forest) ---")
+print(f"Test F1-Score: {f1_test:.2%}")
+print(f"Train F1-Score: {f1_train:.2%}")
+print(f"Performance Gap (F1-Score): {abs(f1_train - f1_test):.2%}")
